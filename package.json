@@ -1,0 +1,19 @@
+{
+  "name": "bear-guardian-codex",
+  "version": "1.0.0",
+  "description": "The Bear Guardian Codex — a connected worldbuilding database, backed by a real SQLite/libSQL database via Turso.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}
