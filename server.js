@@ -15,6 +15,7 @@ function summarize(entry) {
     id: entry.id, title: entry.title, type: entry.type, tags: entry.tags || [],
     series: entry.series || 'Series 1', favorite: !!entry.favorite, isStub: !!entry.isStub,
     updatedAt: entry.updatedAt, createdAt: entry.createdAt, links: entry.links || [],
+    image: (entry.fields && entry.fields.image) || '',
     snippet: (entry.body || Object.values(entry.fields || {}).find(v => typeof v === 'string') || '').slice(0, 140),
   };
 }
