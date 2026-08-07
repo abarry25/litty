@@ -13,7 +13,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 function summarize(entry) {
   return {
     id: entry.id, title: entry.title, type: entry.type, tags: entry.tags || [],
-    series: entry.series || 'Series 1', favorite: !!entry.favorite, isStub: !!entry.isStub,
+    universe: entry.universe || 'bearGuardian', series: entry.series || 'Series 1',
+    favorite: !!entry.favorite, isStub: !!entry.isStub,
     updatedAt: entry.updatedAt, createdAt: entry.createdAt, links: entry.links || [],
     image: (entry.fields && entry.fields.image) || '',
     snippet: (entry.body || Object.values(entry.fields || {}).find(v => typeof v === 'string') || '').slice(0, 140),
@@ -83,7 +84,8 @@ app.post('/api/entries', async (req, res) => {
       if (!found) {
         const stub = {
           id: uid(), type: 'custom', title: t, fields: { description: '' }, body: '',
-          tags: ['stub'], series: toSave.series || 'Series 1', favorite: false, isStub: true,
+          tags: ['stub'], universe: toSave.universe || 'bearGuardian', series: toSave.series || 'Series 1',
+          favorite: false, isStub: true,
           links: [], history: [], createdAt: nowISO(), updatedAt: nowISO(),
         };
         await db.upsertEntry(stub);
