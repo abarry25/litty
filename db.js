@@ -24,6 +24,7 @@ async function init() {
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL,
       title TEXT NOT NULL,
+      universe TEXT DEFAULT 'bearGuardian',
       series TEXT DEFAULT 'Series 1',
       favorite INTEGER DEFAULT 0,
       isStub INTEGER DEFAULT 0,
@@ -36,6 +37,14 @@ async function init() {
       updatedAt TEXT
     )
   `);
+  // Migration for databases created before the 'universe' column existed —
+  // ALTER TABLE ADD COLUMN throws if the column is already there, so this is
+  // safe to run every time the server boots.
+  try {
+    await client.execute(`ALTER TABLE entries ADD COLUMN universe TEXT DEFAULT 'bearGuardian'`);
+  } catch (err) {
+    if (!/duplicate column/i.test(err.message || '')) throw err;
+  }
 }
 
 function rowToEntry(row) {
@@ -43,6 +52,7 @@ function rowToEntry(row) {
     id: row.id,
     type: row.type,
     title: row.title,
+    universe: row.universe || 'bearGuardian',
     series: row.series || 'Series 1',
     favorite: !!row.favorite,
     isStub: !!row.isStub,
@@ -68,15 +78,15 @@ async function getEntry(id) {
 
 async function upsertEntry(entry) {
   await client.execute({
-    sql: `INSERT INTO entries (id,type,title,series,favorite,isStub,tags,links,fields,body,history,createdAt,updatedAt)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+    sql: `INSERT INTO entries (id,type,title,universe,series,favorite,isStub,tags,links,fields,body,history,createdAt,updatedAt)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(id) DO UPDATE SET
-            type=excluded.type, title=excluded.title, series=excluded.series,
+            type=excluded.type, title=excluded.title, universe=excluded.universe, series=excluded.series,
             favorite=excluded.favorite, isStub=excluded.isStub, tags=excluded.tags,
             links=excluded.links, fields=excluded.fields, body=excluded.body,
             history=excluded.history, createdAt=excluded.createdAt, updatedAt=excluded.updatedAt`,
     args: [
-      entry.id, entry.type, entry.title, entry.series || 'Series 1',
+      entry.id, entry.type, entry.title, entry.universe || 'bearGuardian', entry.series || 'Series 1',
       entry.favorite ? 1 : 0, entry.isStub ? 1 : 0,
       JSON.stringify(entry.tags || []), JSON.stringify(entry.links || []),
       JSON.stringify(entry.fields || {}), entry.body || '',
