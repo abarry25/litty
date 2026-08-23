@@ -65,7 +65,7 @@
     border:0.5px solid var(--border);
     border-radius:var(--radius);
     padding:16px 20px;
-    margin-bottom:24px;
+    margin-bottom:20px;
     display:flex;
     align-items:center;
     gap:16px;
@@ -97,6 +97,29 @@
     cursor:pointer;
   }
   button.tool:hover{background:var(--surface-muted);}
+
+  /* Fix-before-beta pinned card */
+  .fixbeta{
+    background:var(--surface-card);
+    border:1.5px solid var(--critical);
+    border-radius:12px;
+    margin-bottom:24px;
+    overflow:hidden;
+  }
+  .fixbeta-head{
+    padding:14px 18px;
+    background:var(--critical-bg);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .fixbeta-head .pin{font-size:16px;}
+  .fixbeta-title{font-size:15px;font-weight:600;color:var(--critical);flex:1;}
+  .fixbeta-progress{font-size:12px;color:var(--critical);font-weight:600;}
+  .fixbeta-sub{
+    font-size:12px;color:var(--text-secondary);
+    padding:10px 18px 0;
+  }
 
   details.pass{
     background:var(--surface-card);
@@ -132,6 +155,7 @@
     background:var(--surface-muted);overflow:hidden;
   }
   .bar-fill{height:100%;background:var(--accent);border-radius:3px;}
+  .fixbeta .bar-fill{background:var(--critical);}
 
   .section-label{
     font-size:12px;font-weight:600;color:var(--text-secondary);
@@ -141,7 +165,7 @@
   .item{
     display:flex;
     gap:10px;
-    padding:9px 18px 9px 14px;
+    padding:11px 18px;
     border-top:0.5px solid var(--border);
   }
   .item:first-of-type{border-top:none;}
@@ -152,20 +176,40 @@
     accent-color:var(--accent);
     cursor:pointer;
   }
+  .fixbeta .item input[type=checkbox]{accent-color:var(--critical);}
   .item-body{flex:1;min-width:0;}
-  .item-text{font-size:14px;line-height:1.45;}
-  .item.done .item-text{color:var(--text-muted);text-decoration:line-through;}
-  .item-loc{
-    font-size:12px;color:var(--text-muted);
-    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-    margin-top:2px;
-  }
   .item-row{
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
     gap:10px;
   }
+  .item-text{font-size:14px;line-height:1.45;}
+  .item.done .item-text{color:var(--text-muted);text-decoration:line-through;}
+  .item-detail{
+    font-size:13px;color:var(--text-secondary);
+    margin-top:3px;
+    line-height:1.45;
+  }
+  .item-loc{
+    font-size:12px;color:var(--text-muted);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    margin-top:3px;
+  }
+  .badge{
+    display:inline-block;
+    font-size:10px;font-weight:600;
+    padding:2px 7px;
+    border-radius:99px;
+    margin-left:8px;
+    vertical-align:middle;
+    white-space:nowrap;
+  }
+  .badge.critical{background:var(--critical-bg);color:var(--critical);}
+  .badge.high{background:var(--high-bg);color:var(--high);}
+  .badge.medium{background:var(--medium-bg);color:var(--medium);}
+  .badge.last{background:var(--surface-muted);color:var(--text-secondary);}
+
   .note-toggle{
     flex-shrink:0;
     font-size:11px;
@@ -179,6 +223,7 @@
   }
   .note-toggle:hover{color:var(--text-secondary);}
   .note-toggle.has-note{color:var(--accent);}
+  .fixbeta .note-toggle.has-note{color:var(--critical);}
   .note-input{
     display:none;
     width:100%;
@@ -203,19 +248,6 @@
     transition:opacity .2s ease;
   }
   .note-saved.show{opacity:1;}
-  .badge{
-    display:inline-block;
-    font-size:10px;font-weight:600;
-    padding:2px 7px;
-    border-radius:99px;
-    margin-left:8px;
-    vertical-align:middle;
-    white-space:nowrap;
-  }
-  .badge.critical{background:var(--critical-bg);color:var(--critical);}
-  .badge.high{background:var(--high-bg);color:var(--high);}
-  .badge.medium{background:var(--medium-bg);color:var(--medium);}
-  .badge.last{background:var(--surface-muted);color:var(--text-secondary);}
 
   .note{
     font-size:13px;color:var(--text-secondary);
@@ -246,7 +278,7 @@
 <body>
 <div class="wrap">
   <h1>The Bear Guardian — revision checklist</h1>
-  <p class="subtitle">Check items off as you go. Progress saves automatically.</p>
+  <p class="subtitle">Check items off as you go. Notes and progress save automatically.</p>
 
   <div class="overall">
     <div class="overall-ring" id="overallRing" style="--pct:0">
@@ -268,12 +300,37 @@
     <button class="tool" id="resetAll">Reset progress</button>
   </div>
 
+  <!-- Pinned: Fix Before Beta -->
+  <div class="fixbeta">
+    <div class="fixbeta-head">
+      <span class="pin">📌</span>
+      <span class="fixbeta-title">Fix before beta — continuity &amp; logic</span>
+      <span class="fixbeta-progress" id="fixbetaProgress">0/10</span>
+    </div>
+    <div class="fixbeta-sub">Pulled directly from the Continuity and Logic Audit. These are the specific beats to come back to — including the Rían/Orlíen Veil arrival and the moonstone reasoning.</div>
+    <div class="bar" style="margin:10px 18px 0; width:auto;"><span class="bar-fill" id="fixbetaBar" style="width:0%"></span></div>
+    <div id="fixbetaList"></div>
+  </div>
+
   <div id="passList"></div>
 </div>
 
 <div class="save-toast" id="toast">Progress reset</div>
 
 <script>
+const FIXBETA = [
+  { id:"fb-journal", issue:"Rían's journal says \"three days ago, the order changed,\" but the surrounding Astralis story has advanced for weeks.", fix:"Replace with a timeline-consistent marker, or date the journal entries.", tag:"high" },
+  { id:"fb-huntdays", issue:"The hunt is called its third day, but Maeren later refers to \"four grueling days.\"", fix:"Verify the intended count and standardize.", tag:"medium" },
+  { id:"fb-elders", issue:"Elder Agon becomes \"Agin\"; the later seven-Elder roster adds Athos and drops Agon.", fix:"Establish one canonical roster and family relationship.", tag:"high" },
+  { id:"fb-ursa", issue:"Ursa is present entering the Bear's final stand, but isn't accounted for when the sisters leave together on Riven.", fix:"Show her fleeing, being killed, being taken, or deliberately left.", tag:"medium" },
+  { id:"fb-rianhand", issue:"Rían punches a door and believes his hand is likely broken; the injury has no later functional effect.", fix:"Follow it through, or soften \"likely broken\" to bruising/pain.", tag:"medium" },
+  { id:"fb-veil-arrival", issue:"Rían and Orlíen appear at the exact Veil Maeren chooses, with no clear interception beat.", fix:"Add one line connecting Orlíen's sight, or Rían's knowledge, to that location.", tag:"high" },
+  { id:"fb-moonstone", issue:"Rían's moonstone-removal reasoning at the climax is compressed — why he thinks the amulet is harming/trapping her isn't stated.", fix:"State the mechanism he infers and why removing it could save her. As written it can read as an argument for leaving it ON.", tag:"critical" },
+  { id:"fb-prologue", issue:"The prologue's burned woman remains unidentified and isn't meaningfully echoed later.", fix:"Confirm this is a deliberate Book Two plant; otherwise add a Book One echo.", tag:"medium" },
+  { id:"fb-orderterm", issue:"\"Order of Divinity\" appears once against \"Divinity of Order.\"", fix:"Standardize to one term.", tag:"medium" },
+  { id:"fb-godric", issue:"\"Godric Moore\" becomes \"Godric Moor.\"", fix:"Choose one surname.", tag:"medium" }
+];
+
 const DATA = [
   {
     id: "pass1",
@@ -281,52 +338,17 @@ const DATA = [
     sub: "Make the manuscript a manuscript.",
     sections: [
       {
-        label: "Kill the draft artifacts — critical",
+        label: "Remove draft artifacts — critical",
         items: [
-          { id:"p1-throne", text:"Corrupted / garbled prose fixed", loc:"Page 19, Throne Room", tag:"critical" },
-          { id:"p1-table1", text:"Embedded editorial dev table removed", loc:"Pages 29–30", tag:"critical" },
-          { id:"p1-table2", text:"Embedded dev table removed (spoils Nyara's death)", loc:"Pages 35–36", tag:"critical" },
-          { id:"p1-table3", text:"Embedded dev table removed", loc:"Pages 40–41", tag:"critical" },
-          { id:"p1-heading", text:'Stray heading removed: "Rían - R (3 beats to edit)"', loc:"Page 80", tag:"critical" },
-          { id:"p1-brackets1", text:"Bracketed direction notes resolved into real prose (pressure / resistance / introspection beats)", loc:"Pages 81–82", tag:"critical" },
-          { id:"p1-blank", text:"Blank placeholder area filled in", loc:"Page 82", tag:"critical" },
-          { id:"p1-movement", text:'"<<MORE PHYSICAL MOVEMENT HERE>>" written in — where the Bear reacts and collapses', loc:"Page 84", tag:"critical" },
-          { id:"p1-village", text:"Village/frantic-POV placeholder written in", loc:"Page 104", tag:"critical" },
-          { id:"p1-mismatch", text:"Mismatched bracket fixed: {person of interest]", loc:"Near the Elders", tag:"critical" },
-          { id:"p1-clumsy", text:'Stray editorial comment removed: "It was a clumsy delivery,"', loc:"Page 235", tag:"critical" },
-          { id:"p1-veils", text:'Unclear standalone "The Veils" resolved (subheading vs. narration)', loc:"Page 291", tag:"critical" },
-          { id:"p1-bracket338", text:"Stray closing bracket removed after dialogue", loc:"Page 338", tag:"critical" },
-          { id:"p1-partI", text:'"PART II" reconciled with missing "PART I" marker', loc:"Part structure", tag:"critical" },
-          { id:"p1-headings", text:"Chapter heading style standardized (emoji use, capitalization, POV tags)", loc:"Throughout", tag:"critical" }
+          { id:"p1-corrupted", text:"Complete or repair every corrupted line and unfinished-scene placeholder", detail:"Throne Room (p.19), bracketed direction notes and blank area (p.81–82), missing physical movement (p.84), village/frantic-POV placeholder (p.104), stray editorial comment (p.235), unclear \"The Veils\" standalone (p.291), mismatched bracket near the Elders, stray closing bracket (p.338)", tag:"critical" },
+          { id:"p1-tables", text:"Remove all embedded editorial dev tables", detail:"Pages 29–30, 35–36 (spoils Nyara's death), 40–41", tag:"critical" },
+          { id:"p1-structure", text:"Fix structural inconsistencies", detail:"Missing \"PART I\" marker before \"PART II\"; standardize chapter heading style (emoji use, capitalization, POV tags) throughout; remove stray heading on p.80", tag:"critical" }
         ]
       },
       {
         label: "Standardize names — critical",
         items: [
-          { id:"p1-name-aurelian", text:"Aurelian — pick one spelling (vs. Aurlien, Aurelien, Aurliean, Aurlelian)", tag:"critical" },
-          { id:"p1-name-rian", text:"Rían — pick one spelling (vs. Rian, Ryan)", tag:"critical" },
-          { id:"p1-name-orlien", text:"Orlíen — pick one spelling (vs. Orlien, Orlirn)", tag:"critical" },
-          { id:"p1-name-astraen", text:"Astraen/Astrean — choose one", tag:"critical" },
-          { id:"p1-name-goddess", text:"Confirm Maevira/Minvaera/Minevaera/Mineveara is one goddess, standardize spelling", tag:"critical" },
-          { id:"p1-name-vaela", text:"Vaela — pick one spelling (vs. Valea, Veala)", tag:"critical" },
-          { id:"p1-name-godric", text:"Godric Moore — pick one spelling (vs. Moor)", tag:"critical" },
-          { id:"p1-name-spector", text:"Spector/Spectre — pick one", tag:"critical" },
-          { id:"p1-name-talauvmor", text:"Talauvmor/Taluavmor — pick one", tag:"critical" },
-          { id:"p1-name-misc", text:"Remaining variants standardized: Maren/Maeren, Byrnna/Brynna, Cider/Cyder, Gwyrionez variants, Syrithien/Velomora, Sha'thi/Shai'thi, Astralist/Astralis", tag:"critical" },
-          { id:"p1-name-order", text:'"Order of Divinity" vs. "Divinity of Order" — pick one', tag:"critical" }
-        ]
-      },
-      {
-        label: "Fix continuity and logic errors — high",
-        items: [
-          { id:"p1-journal-date", text:"Rían's journal timeline fixed (\"three days ago\" vs. weeks elapsed)", tag:"high" },
-          { id:"p1-hunt-days", text:'Hunt day-count standardized ("third day" vs. "four grueling days")', tag:"high" },
-          { id:"p1-elder-roster", text:"Elder roster fixed (Agon/Agin, Athos addition)", tag:"high" },
-          { id:"p1-ursa", text:"Ursa's disappearance from the Bear's last stand addressed", tag:"high" },
-          { id:"p1-rian-hand", text:"Rían's likely-broken hand followed through or softened", tag:"high" },
-          { id:"p1-interception", text:"Rían/Orlíen's arrival at the exact Veil given a causal beat", tag:"high" },
-          { id:"p1-moonstone", text:"Moonstone-removal reasoning clarified at the climax", tag:"high" },
-          { id:"p1-prologue-woman", text:"Prologue's burned woman confirmed as Book Two seed, or echoed in Book One", tag:"high" }
+          { id:"p1-names", text:"Standardize every character/place name to one canonical spelling", detail:"Aurelian, Rían, Orlíen, Astraen/Astrean, the goddess (Maevira/Minvaera/Minevaera/Mineveara), Vaela, Spector/Spectre, Talauvmor/Taluavmor, Maren/Maeren, Byrnna/Brynna, Cider/Cyder, Gwyrionez variants, Syrithien/Velomora, Sha'thi/Shai'thi, Astralist/Astralis — see also Godric Moore and \"Order of Divinity\" in Fix Before Beta above", tag:"critical" }
         ]
       }
     ],
@@ -338,32 +360,23 @@ const DATA = [
     sub: "Make sure every sentence produces one clear picture, and every beat earns the next.",
     sections: [
       {
-        label: "Sentence-level clarity sweep — high",
+        label: "Sentence-level clarity — high",
         items: [
-          { id:"p2-modifiers", text:"Dangling/misattached modifiers fixed (e.g. \"Approaching the horse, Riven instantly nodded…\")", tag:"high" },
-          { id:"p2-pronouns", text:"Ambiguous pronoun references resolved", tag:"high" },
-          { id:"p2-anatomy", text:'Anatomically unclear language fixed ("eyelids disappeared behind his eyeballs," "shuttered"→"shuddered," "gagged," "soak of blood")', tag:"high" },
-          { id:"p2-abstract", text:'Abstract verbs replaced with concrete images ("space to breach," "reoriented her chin," "shadow compiled")', tag:"high" },
-          { id:"p2-agreement", text:'Agreement errors fixed ("like a swords ready for combat")', tag:"high" }
+          { id:"p2-clarity", text:"Fix recurring sentence-level clarity issues", detail:"Dangling/misattached modifiers, ambiguous pronouns, anatomically unclear language (\"shuttered\"→\"shuddered,\" \"gagged,\" eyelids/eyeballs line), abstract verbs standing in for simple images (\"space to breach,\" \"reoriented her chin,\" \"shadow compiled\"), and agreement errors (\"like a swords\")", tag:"high" }
         ]
       },
       {
         label: "Highest-impact weak passages — high",
         items: [
-          { id:"p2-throne-clarity", text:"Throne Room lines re-checked for clarity after Pass 1 fix", tag:"high" },
-          { id:"p2-surveillance", text:"Rían's first surveillance chapter — pressure/resistance/introspection beats written in fully", tag:"high" },
-          { id:"p2-bear-approach", text:"Maeren's first approach to the Bear — physical transition restored", tag:"high" },
-          { id:"p2-market", text:"Market/village transition — spatial and psychic continuity restored", tag:"high" },
-          { id:"p2-portal", text:"Portal confrontation / final transformation — verbs and metaphor sequence clarified (highest-value fix in the book)", tag:"critical" },
-          { id:"p2-laststand", text:"Bear's last stand — spatial orientation tightened, figurative language reduced", tag:"high" }
+          { id:"p2-portal", text:"Clarify the portal confrontation / final transformation", detail:"Hardest sequence to visualize — imprecise verbs and stacked metaphors arrive faster than cause-and-effect. Highest-value clarity fix in the book, since it's also the climax.", tag:"critical" },
+          { id:"p2-underwritten", text:"Finish underwritten scenes with real prose, not just placeholder removal", detail:"Rían's first surveillance chapter (missing pressure/resistance/introspection beats), Maeren's first approach to the Bear (missing physical transition), market/village transition (missing spatial/psychic grounding)", tag:"high" },
+          { id:"p2-laststand", text:"Tighten spatial orientation in the Bear's last stand", detail:"Many simultaneous combatants blur positioning; be selective with figurative language here specifically", tag:"high" }
         ]
       },
       {
-        label: "Climax causality check — high",
+        label: "Climax causality — high",
         items: [
-          { id:"p2-chain", text:"Full causal chain reads cleanly end to end (rain barrier → Elder response → investigation → family truth → betrayal → escape attempt → interception → forced power → moonstone removal → transformation)", tag:"high" },
-          { id:"p2-agency", text:"Confirmed Maeren's choice to use force reads as conscious, distinct from the uncontrolled outcome", tag:"high" },
-          { id:"p2-override", text:"Confirmed Rían's intervention doesn't read as overriding Maeren's agency", tag:"high" }
+          { id:"p2-causality", text:"Confirm the full climax chain reads clearly and Maeren's agency is intact", detail:"Rain barrier → Elder response → investigation → family truth → betrayal → escape attempt → interception → forced power → moonstone removal → transformation. Her choice to use force should read as conscious; Rían's intervention (see Fix Before Beta) shouldn't read as overriding that.", tag:"high" }
         ]
       }
     ],
@@ -375,58 +388,32 @@ const DATA = [
     sub: "Say each true thing once, in its strongest form.",
     sections: [
       {
-        label: "The one-question test — high",
+        label: "Reduce competing emotional channels — high",
         items: [
-          { id:"p3-elders", text:"Confronting the Elders — fire/heat imagery reduced to one clear escalation", tag:"high" },
-          { id:"p3-betrayal", text:"Betrayal revelation — channels reduced from nine to the strongest few", tag:"high" },
-          { id:"p3-portal-metaphor", text:"Portal confrontation — competing metaphor families (fire/ice/stone/blood) reduced to one dominant system", tag:"high" },
-          { id:"p3-bird", text:"Rían's bird/cage metaphor — second, longer version cut or shortened so it doesn't re-perform the first", tag:"high" },
-          { id:"p3-mourning", text:"Nyara's forest mourning — emotional labels reduced to one register", tag:"high" }
+          { id:"p3-onequestion", text:"Cut redundant channels at major emotional peaks", detail:"For each beat, identify how many of {action, bodily sensation, metaphor, direct naming, environmental response, internal explanation} are doing the same job, and cut to the strongest one. Priority spots: Confronting the Elders, the betrayal revelation, the portal confrontation, Rían's bird/cage metaphor (second pass repeats rather than deepens it), Nyara's forest mourning.", tag:"high" }
         ]
       },
       {
-        label: "Somatic vocabulary audit — medium-high",
+        label: "Reduce overused vocabulary — medium",
         items: [
-          { id:"p3-eyes", text:"Eyes/looked — reduced to beats where a look changes power or withholds speech (~436/326 uses)", tag:"medium" },
-          { id:"p3-chest", text:"Chest/heart/gut/stomach — differentiated by character and emotion (~230 combined uses)", tag:"medium" },
-          { id:"p3-breath", text:"Breath/breathing — kept only where fear/exertion/restraint make it meaningful (120 uses)", tag:"medium" },
-          { id:"p3-blood", text:'Blood — metaphorical uses ("blood boiling") checked against fire-imagery overlap (92 uses)', tag:"medium" },
-          { id:"p3-nod", text:"Nodded/shook head — dialogue choreography varied (86/77 uses)", tag:"medium" },
-          { id:"p3-asif", text:'"As if" comparisons — kept only where they add a new image (~110 uses)', tag:"medium" },
-          { id:"p3-started", text:'"Started to" / "Seemed to" / "Began to" — cut where the direct action is already visible (~62/56/34 uses)', tag:"medium" }
-        ]
-      },
-      {
-        label: "Filtering pass — medium",
-        items: [
-          { id:"p3-filter", text:'"Could see / could feel / felt / noticed / realized / watched" audited — kept only where perception itself is the point', tag:"medium" }
+          { id:"p3-somatic", text:"Audit and reduce overused somatic and filler language", detail:"Eyes/looked (~436/326 uses) — keep only where a look changes power or withholds speech. Chest/heart/gut/stomach (~230 combined) — differentiate by character and emotion. Breath, blood, nodding/head-shaking, \"as if,\" and \"started/seemed/began to\" — trim wherever the direct action is already visible.", tag:"medium" },
+          { id:"p3-filtering", text:"Audit filtering constructions (\"could see/feel,\" \"felt,\" \"noticed,\" \"realized,\" \"watched\")", detail:"Keep where perception itself is the point (Maeren's magic sense, genuine uncertainty); cut where the sentence immediately gives the sensory fact anyway", tag:"medium" }
         ]
       },
       {
         label: "Dialogue mechanics — medium",
         items: [
-          { id:"p3-punct", text:"Dialogue tag punctuation/capitalization inconsistencies fixed", tag:"medium" },
-          { id:"p3-tagbeat", text:"Redundant tag + somatic beat + dialogue combinations trimmed to one", tag:"medium" },
-          { id:"p3-expo", text:"Expository dialogue (Kēlē, Orlíen, Gwyrionez, Rían, Cordova) rechecked for individual speech rhythm", tag:"medium" }
+          { id:"p3-dialogue", text:"Clean up dialogue mechanics and voice", detail:"Fix tag punctuation/capitalization inconsistencies; trim redundant tag + somatic beat + dialogue stacking; recheck expository speeches (Kēlē, Orlíen, Gwyrionez, Rían, Cordova) for individual speech rhythm", tag:"medium" }
         ]
       },
       {
         label: "Final protective read — do last",
         items: [
-          { id:"p3-nature", text:"Nature as sentient/responsive still intact", tag:"last" },
-          { id:"p3-animals", text:"Animal specificity (Riven, Ursa, the Bear) still intact", tag:"last" },
-          { id:"p3-hydrangea", text:"Hydrangea symbolism still intact", tag:"last" },
-          { id:"p3-rain", text:"Rain-as-freedom motif still intact", tag:"last" },
-          { id:"p3-magic", text:"Magic still reads as ecological/perceptual, not technical", tag:"last" },
-          { id:"p3-staccato", text:"Staccato rhythm in terror/violence preserved (prologue is the benchmark)", tag:"last" },
-          { id:"p3-observational", text:"Maeren's observational filtering preserved where perception matters", tag:"last" },
-          { id:"p3-gestures", text:"Small physical gestures carrying grief preserved (Aurelian's poppy is the benchmark)", tag:"last" },
-          { id:"p3-juxtaposition", text:"Beauty/violence juxtaposition preserved", tag:"last" },
-          { id:"p3-fragments", text:"Fragments for dreams, names, prophecy, self-condemnation preserved", tag:"last" }
+          { id:"p3-identity", text:"Confirm the manuscript's identity markers are still intact after polish", detail:"Sentient/responsive nature, animal specificity (Riven, Ursa, the Bear), hydrangea symbolism, rain-as-freedom, magic as ecological/perceptual, staccato rhythm in terror/violence, Maeren's observational filtering, small physical gestures carrying grief, beauty/violence juxtaposition, fragments for dreams/names/prophecy", tag:"last" }
         ]
       }
     ],
-    note: "Exit criteria: reading each major emotional beat aloud, nothing repeats itself in three different vocabularies, and the ten identity markers above are still intact."
+    note: "Exit criteria: reading each major emotional beat aloud, nothing repeats itself in three different vocabularies, and the identity markers above are still intact."
   }
 ];
 
@@ -450,19 +437,74 @@ function tagLabel(tag){
   return "Do last";
 }
 
-function allItems(){
+function allPassItems(){
   const out = [];
   DATA.forEach(pass => pass.sections.forEach(sec => sec.items.forEach(it => out.push(it))));
   return out;
 }
+function allItems(){
+  return [...FIXBETA, ...allPassItems()];
+}
+
+function buildRow(it, isFixbeta){
+  const hasNote = !!(notes[it.id] && notes[it.id].trim());
+  const row = document.createElement("div");
+  row.className = "item" + (checked[it.id] ? " done" : "");
+  const mainText = isFixbeta ? it.issue : it.text;
+  const detailText = isFixbeta ? it.fix : it.detail;
+  row.innerHTML = `
+    <input type="checkbox" id="chk-${it.id}" ${checked[it.id] ? "checked" : ""}>
+    <div class="item-body">
+      <div class="item-row">
+        <label for="chk-${it.id}" class="item-text">${mainText}<span class="badge ${it.tag}">${tagLabel(it.tag)}</span></label>
+        <button type="button" class="note-toggle${hasNote ? " has-note" : ""}" data-id="${it.id}">${hasNote ? "Edit note" : "+ Note"}</button>
+      </div>
+      ${detailText ? `<div class="item-detail">${isFixbeta ? "Fix: " : ""}${detailText}</div>` : ""}
+      <textarea class="note-input${hasNote ? " open" : ""}" data-id="${it.id}" placeholder="Add a note…">${escapeHtml(notes[it.id] || "")}</textarea>
+      <div class="note-saved" data-id="${it.id}">Saved</div>
+    </div>
+  `;
+  const cb = row.querySelector("input");
+  cb.addEventListener("change", () => {
+    checked[it.id] = cb.checked;
+    row.classList.toggle("done", cb.checked);
+    save();
+    renderProgressOnly();
+  });
+
+  const noteToggle = row.querySelector(".note-toggle");
+  const noteInput = row.querySelector(".note-input");
+  noteToggle.addEventListener("click", () => {
+    const isOpen = noteInput.classList.toggle("open");
+    if(isOpen) noteInput.focus();
+  });
+  noteInput.addEventListener("input", () => {
+    const id = it.id;
+    notes[id] = noteInput.value;
+    const hasText = !!noteInput.value.trim();
+    noteToggle.classList.toggle("has-note", hasText);
+    noteToggle.textContent = hasText ? "Edit note" : "+ Note";
+    clearTimeout(noteSaveTimers[id]);
+    noteSaveTimers[id] = setTimeout(async () => {
+      await save();
+      const savedTag = row.querySelector(`.note-saved[data-id="${id}"]`);
+      savedTag.classList.add("show");
+      setTimeout(() => savedTag.classList.remove("show"), 1200);
+    }, 500);
+  });
+
+  return row;
+}
 
 function render(){
+  const fixbetaList = document.getElementById("fixbetaList");
+  fixbetaList.innerHTML = "";
+  FIXBETA.forEach(it => fixbetaList.appendChild(buildRow(it, true)));
+
   const passList = document.getElementById("passList");
   passList.innerHTML = "";
   DATA.forEach((pass, idx) => {
     const items = pass.sections.flatMap(s => s.items);
-    const doneCount = items.filter(it => checked[it.id]).length;
-    const pct = items.length ? Math.round((doneCount/items.length)*100) : 0;
 
     const details = document.createElement("details");
     details.className = "pass";
@@ -473,8 +515,8 @@ function render(){
       <span class="chev">&#9656;</span>
       <span class="pass-title">${pass.title}<span class="pass-sub">${pass.sub}</span></span>
       <span class="pass-progress">
-        <span class="bar"><span class="bar-fill" style="width:${pct}%"></span></span>
-        ${doneCount}/${items.length}
+        <span class="bar"><span class="bar-fill"></span></span>
+        <span class="pass-count"></span>
       </span>
     `;
     details.appendChild(summary);
@@ -484,54 +526,7 @@ function render(){
       label.className = "section-label";
       label.textContent = sec.label;
       details.appendChild(label);
-
-      sec.items.forEach(it => {
-        const hasNote = !!(notes[it.id] && notes[it.id].trim());
-        const row = document.createElement("div");
-        row.className = "item" + (checked[it.id] ? " done" : "");
-        row.innerHTML = `
-          <input type="checkbox" id="chk-${it.id}" ${checked[it.id] ? "checked" : ""}>
-          <div class="item-body">
-            <div class="item-row">
-              <label for="chk-${it.id}" class="item-text">${it.text}<span class="badge ${it.tag}">${tagLabel(it.tag)}</span></label>
-              <button type="button" class="note-toggle${hasNote ? " has-note" : ""}" data-id="${it.id}">${hasNote ? "Edit note" : "+ Note"}</button>
-            </div>
-            ${it.loc ? `<div class="item-loc">${it.loc}</div>` : ""}
-            <textarea class="note-input${hasNote ? " open" : ""}" data-id="${it.id}" placeholder="Add a note…">${escapeHtml(notes[it.id] || "")}</textarea>
-            <div class="note-saved" data-id="${it.id}">Saved</div>
-          </div>
-        `;
-        const cb = row.querySelector("input");
-        cb.addEventListener("change", () => {
-          checked[it.id] = cb.checked;
-          row.classList.toggle("done", cb.checked);
-          save();
-          renderProgressOnly();
-        });
-
-        const noteToggle = row.querySelector(".note-toggle");
-        const noteInput = row.querySelector(".note-input");
-        noteToggle.addEventListener("click", () => {
-          const isOpen = noteInput.classList.toggle("open");
-          if(isOpen) noteInput.focus();
-        });
-        noteInput.addEventListener("input", () => {
-          const id = it.id;
-          notes[id] = noteInput.value;
-          const hasText = !!noteInput.value.trim();
-          noteToggle.classList.toggle("has-note", hasText);
-          noteToggle.textContent = hasText ? "Edit note" : "+ Note";
-          clearTimeout(noteSaveTimers[id]);
-          noteSaveTimers[id] = setTimeout(async () => {
-            await save();
-            const savedTag = row.querySelector(`.note-saved[data-id="${id}"]`);
-            savedTag.classList.add("show");
-            setTimeout(() => savedTag.classList.remove("show"), 1200);
-          }, 500);
-        });
-
-        details.appendChild(row);
-      });
+      sec.items.forEach(it => details.appendChild(buildRow(it, false)));
     });
 
     const note = document.createElement("div");
@@ -553,13 +548,18 @@ function renderProgressOnly(){
   document.getElementById("overallPct").textContent = pct + "%";
   document.getElementById("overallText").innerHTML = `<strong>${done} of ${items.length}</strong> items complete`;
 
+  const fbDone = FIXBETA.filter(it => checked[it.id]).length;
+  const fbPct = FIXBETA.length ? Math.round((fbDone/FIXBETA.length)*100) : 0;
+  document.getElementById("fixbetaProgress").textContent = `${fbDone}/${FIXBETA.length}`;
+  document.getElementById("fixbetaBar").style.width = fbPct + "%";
+
   document.querySelectorAll("details.pass").forEach((el, idx) => {
     const pass = DATA[idx];
     const items = pass.sections.flatMap(s => s.items);
     const doneCount = items.filter(it => checked[it.id]).length;
     const pct = items.length ? Math.round((doneCount/items.length)*100) : 0;
     el.querySelector(".bar-fill").style.width = pct + "%";
-    el.querySelector(".pass-progress").lastChild.textContent = ` ${doneCount}/${items.length}`;
+    el.querySelector(".pass-count").textContent = `${doneCount}/${items.length}`;
   });
 }
 
@@ -580,7 +580,6 @@ async function load(){
         checked = parsed.checked || {};
         notes = parsed.notes || {};
       }else{
-        // legacy format: raw checked map with no notes
         checked = parsed || {};
         notes = {};
       }
