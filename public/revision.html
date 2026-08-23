@@ -160,6 +160,49 @@
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
     margin-top:2px;
   }
+  .item-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .note-toggle{
+    flex-shrink:0;
+    font-size:11px;
+    color:var(--text-muted);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:2px 0;
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .note-toggle:hover{color:var(--text-secondary);}
+  .note-toggle.has-note{color:var(--accent);}
+  .note-input{
+    display:none;
+    width:100%;
+    margin-top:8px;
+    font-family:inherit;
+    font-size:13px;
+    line-height:1.4;
+    color:var(--text-primary);
+    background:var(--surface-muted);
+    border:0.5px solid var(--border);
+    border-radius:8px;
+    padding:8px 10px;
+    resize:vertical;
+    min-height:52px;
+  }
+  .note-input:focus{outline:none;border-color:var(--border-strong);}
+  .note-input.open{display:block;}
+  .note-saved{
+    font-size:11px;color:var(--text-muted);
+    margin-top:3px;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .note-saved.show{opacity:1;}
   .badge{
     display:inline-block;
     font-size:10px;font-weight:600;
@@ -387,8 +430,18 @@ const DATA = [
   }
 ];
 
-const STORAGE_KEY = "bear-guardian-revision-progress";
+const STORAGE_KEY = "bear-guardian-revision-state";
 let checked = {};
+let notes = {};
+let noteSaveTimers = {};
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
 
 function tagLabel(tag){
   if(tag==="critical") return "Critical";
@@ -433,13 +486,19 @@ function render(){
       details.appendChild(label);
 
       sec.items.forEach(it => {
+        const hasNote = !!(notes[it.id] && notes[it.id].trim());
         const row = document.createElement("div");
         row.className = "item" + (checked[it.id] ? " done" : "");
         row.innerHTML = `
           <input type="checkbox" id="chk-${it.id}" ${checked[it.id] ? "checked" : ""}>
           <div class="item-body">
-            <label for="chk-${it.id}" class="item-text">${it.text}<span class="badge ${it.tag}">${tagLabel(it.tag)}</span></label>
+            <div class="item-row">
+              <label for="chk-${it.id}" class="item-text">${it.text}<span class="badge ${it.tag}">${tagLabel(it.tag)}</span></label>
+              <button type="button" class="note-toggle${hasNote ? " has-note" : ""}" data-id="${it.id}">${hasNote ? "Edit note" : "+ Note"}</button>
+            </div>
             ${it.loc ? `<div class="item-loc">${it.loc}</div>` : ""}
+            <textarea class="note-input${hasNote ? " open" : ""}" data-id="${it.id}" placeholder="Add a note…">${escapeHtml(notes[it.id] || "")}</textarea>
+            <div class="note-saved" data-id="${it.id}">Saved</div>
           </div>
         `;
         const cb = row.querySelector("input");
@@ -449,6 +508,28 @@ function render(){
           save();
           renderProgressOnly();
         });
+
+        const noteToggle = row.querySelector(".note-toggle");
+        const noteInput = row.querySelector(".note-input");
+        noteToggle.addEventListener("click", () => {
+          const isOpen = noteInput.classList.toggle("open");
+          if(isOpen) noteInput.focus();
+        });
+        noteInput.addEventListener("input", () => {
+          const id = it.id;
+          notes[id] = noteInput.value;
+          const hasText = !!noteInput.value.trim();
+          noteToggle.classList.toggle("has-note", hasText);
+          noteToggle.textContent = hasText ? "Edit note" : "+ Note";
+          clearTimeout(noteSaveTimers[id]);
+          noteSaveTimers[id] = setTimeout(async () => {
+            await save();
+            const savedTag = row.querySelector(`.note-saved[data-id="${id}"]`);
+            savedTag.classList.add("show");
+            setTimeout(() => savedTag.classList.remove("show"), 1200);
+          }, 500);
+        });
+
         details.appendChild(row);
       });
     });
@@ -484,7 +565,7 @@ function renderProgressOnly(){
 
 async function save(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(checked), false);
+    await window.storage.set(STORAGE_KEY, JSON.stringify({ checked, notes }), false);
   }catch(e){
     // storage unavailable; progress stays in memory for this session
   }
@@ -494,10 +575,19 @@ async function load(){
   try{
     const res = await window.storage.get(STORAGE_KEY, false);
     if(res && res.value){
-      checked = JSON.parse(res.value);
+      const parsed = JSON.parse(res.value);
+      if(parsed && (parsed.checked || parsed.notes)){
+        checked = parsed.checked || {};
+        notes = parsed.notes || {};
+      }else{
+        // legacy format: raw checked map with no notes
+        checked = parsed || {};
+        notes = {};
+      }
     }
   }catch(e){
     checked = {};
+    notes = {};
   }
   render();
 }
@@ -516,7 +606,9 @@ document.getElementById("collapseAll").addEventListener("click", () => {
   document.querySelectorAll("details.pass").forEach(d => d.open = false);
 });
 document.getElementById("resetAll").addEventListener("click", async () => {
+  if(!confirm("Reset all checked items and notes? This can't be undone.")) return;
   checked = {};
+  notes = {};
   await save();
   render();
   showToast("Progress reset");
