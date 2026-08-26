@@ -789,18 +789,45 @@ function renderProgressOnly(){
 }
 
 async function save(){
+  const payload = JSON.stringify({ checked, notes });
+  let savedViaClaude = false;
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify({ checked, notes }), false);
+    if(window.storage && typeof window.storage.set === "function"){
+      await window.storage.set(STORAGE_KEY, payload, false);
+      savedViaClaude = true;
+    }
   }catch(e){
-    // storage unavailable; progress stays in memory for this session
+    savedViaClaude = false;
+  }
+  if(!savedViaClaude){
+    try{
+      localStorage.setItem(STORAGE_KEY, payload);
+    }catch(e){
+      // no persistence available at all; state stays in-memory for this session
+    }
   }
 }
 
 async function load(){
+  let raw = null;
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
+    if(window.storage && typeof window.storage.get === "function"){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value) raw = res.value;
+    }
+  }catch(e){
+    raw = null;
+  }
+  if(raw === null){
+    try{
+      raw = localStorage.getItem(STORAGE_KEY);
+    }catch(e){
+      raw = null;
+    }
+  }
+  if(raw){
+    try{
+      const parsed = JSON.parse(raw);
       if(parsed && (parsed.checked || parsed.notes)){
         checked = parsed.checked || {};
         notes = parsed.notes || {};
@@ -808,10 +835,10 @@ async function load(){
         checked = parsed || {};
         notes = {};
       }
+    }catch(e){
+      checked = {};
+      notes = {};
     }
-  }catch(e){
-    checked = {};
-    notes = {};
   }
   render();
 }
