@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -358,6 +357,29 @@ button{font-family:var(--serif-body);cursor:pointer;}
 .badge-imp-Pivotal{color:var(--rust);font-weight:700;}
 .badge-imp-High{color:var(--gold-bright);}
 .toast{position:fixed;bottom:26px;left:28px;background:var(--forest-800);border:1px solid var(--gold);color:var(--parchment);padding:10px 16px;border-radius:6px;font-size:13px;z-index:200;}
+
+/* ---------- Revision Map (stage-by-row beat grid for a book revision) ---------- */
+.rmap-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px 6px;}
+.rmap{display:grid;grid-template-columns:130px repeat(4,minmax(150px,1fr));gap:7px;min-width:780px;font-size:13.5px;line-height:1.4;}
+.rmap-stage{font-family:var(--sans-display);font-size:13px;letter-spacing:.04em;color:var(--gold-bright);padding:6px 4px 8px;border-bottom:1px solid rgba(201,162,74,.35);}
+.rmap-stage span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);margin-top:2px;}
+.rmap-group{grid-column:1/-1;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:16px 0 2px;}
+.rmap-row{font-family:var(--sans-display);font-size:13px;color:var(--parchment);padding:8px 4px;}
+.rmap-row.linked{color:var(--gold-bright);cursor:pointer;}
+.rmap-row.linked:hover{text-decoration:underline;}
+.rmap-cell{background:var(--forest-900);border:1px solid rgba(201,162,74,.16);border-radius:var(--radius);padding:7px 9px;color:var(--parchment-2);cursor:pointer;min-height:46px;transition:border-color .12s, transform .12s;}
+.rmap-cell:hover{border-color:var(--gold);transform:translateY(-1px);}
+.rmap-cell.quiet{background:transparent;border:1px dotted rgba(201,162,74,.22);cursor:default;}
+.rmap-cell.quiet:hover{transform:none;}
+.rmap-cell.new{background:var(--parchment);border-color:var(--parchment-3);color:var(--ink);}
+.rmap-cell.sharpen{background:rgba(162,80,60,.16);border:1px dashed var(--rust);color:var(--parchment);}
+.rmap-legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 4px;font-family:var(--mono);font-size:11px;color:var(--muted);align-items:center;}
+.rmap-sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-3px;margin-right:6px;}
+.rmap-counts{display:grid;grid-template-columns:130px repeat(4,minmax(150px,1fr));gap:7px;min-width:780px;margin-top:14px;}
+.rmap-counts div{background:var(--forest-900);border:1px solid rgba(201,162,74,.16);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.rmap-counts div:first-child{background:transparent;border:none;align-self:center;}
+.rmap-counts b{display:block;font-family:var(--sans-display);font-size:20px;color:var(--gold-bright);letter-spacing:0;text-transform:none;font-weight:600;}
+.rmap-kind{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--rust);}
 </style>
 </head>
 <body>
@@ -562,6 +584,129 @@ function inUniverse(s){ return (s.universe||'bearGuardian')===App.universe; }
 function typeCount(type){ return App.index.filter(s=>s.type===type && inUniverse(s) && (App.seriesFilter==='All'||s.series===App.seriesFilter)).length; }
 function filteredIndex(type){ return App.index.filter(s=> (!type||s.type===type) && inUniverse(s) && (App.seriesFilter==='All'||s.series===App.seriesFilter)); }
  
+
+/* =========================================================
+   REVISION MAPS — per-universe beat grids for a book revision.
+   Each row: [rowName, [stage1, stage2, stage3, stage4]] or ['g', groupName].
+   Prefix a beat with "n:" for a new beat from the revision plan,
+   "x:" for an existing beat to sharpen; "" means the row is quiet there.
+   Row names that match an entry title link straight to that entry.
+   ========================================================= */
+const REVISION_MAPS = {
+  bearGuardian:{
+    title:'Book One Revision Map',
+    sub:'Every thread of Book One across its four stages — what is on the page now, what the revision plan adds, and what needs sharpening. Click any beat to work on it.',
+    stages:[['Setup','Ch 1–24'],['Rupture','Ch 25–35'],['Astralis and Grove','Ch 36–62'],['Break','Ch 63–70']],
+    rows:[
+      ['g','Characters'],
+      ['Maeren',['n:Blend in to stay; study politics and the Order','Freezes in the dell; complies for Brynna','n:Compliance to defiance; her own hurt over Brynna','Chooses to become it (Ch 68)']],
+      ['Brynna',['n:Blade shields her from betrothal; trusts the system','x:Face her satisfaction in the dell (Ch 29)','n:Druids thrive without a system; she sees the cost','Armory wince; vows vengeance (Ch 64)']],
+      ['Aurelian',['n:Father calls him unfit; the Order offers repentance',"x:King's hug (Ch 32); ritual as penance",'Lies to Vaela; heals her','Cuts the rope']],
+      ['Rían',['n:Pre-kidnap baseline; journal begins',"x:Captor; plant 'he knows too much'",'x:Voice erodes; costly honesty at the Gala',"x:Amulet insight via Orlíen; guilt, no redemption"]],
+      ['Eamon',['n:Known by each sister; death at Ch 22','Cited in the accusation (Ch 28)','Brynna carries it','']],
+      ["Sisters' friction",['n:3–4 beats: her visibility vs her vanishing','Accusation ends the pattern (Ch 28)',"n:Maeren's own anger at Brynna",'']],
+      ['Nyara and Hana',['Nyara dies as the bear (Ch 24)','Hana flashback (Ch 28)','Gwyrionez reveals the truth (Ch 61)',"Orlíen's reveal (Ch 63)"]],
+      ['g','World and power'],
+      ['Court and betrothal',['n:Girls stay only as prospective brides','','n:Eos circles echo it; more Eos','']],
+      ['The Order',['n:Five practices; it blesses betrothals','','Elders mirror the Order',"Elders' fear is rational"]],
+      ['g','Themes'],
+      ['Love vs control',['Vine trap, the heart (Ch 22)','Compliance as a trade','Elders contain her','Rían frees her without consent']],
+      ['Order vs nature',['n:Aurelian is the sincere believer','','Shadow sickness (Ch 51)','Release may be catastrophic']],
+      ['Identity vs expectation',["Maeren's invisibility",'','Own clothes, white gown (Ch 47, 55)','Becomes what they feared']],
+      ['Privilege vs justice',['n:Brynna: the system is justice','','n:Druid life exposes it',"Vow echoes Alai's rhetoric (Ch 64)"]],
+      ['Truth and myth',["Alai's creation story (Ch 8)",'','Cydar and Kēlē versions (Ch 45, 49)','Journal, ledger, false maps']],
+      ['Sacrifice and shame',['','Shame over Eamon and the dell','Both sisters carry it, apart','Shame turns to rage']],
+      ['g','Major objects'],
+      ['Moonstone amulet',['Vibrates, warms, scorches (Ch 8–24)','Goes cold when she yields (Ch 31)','x:Set one rule; brakes the tornado (Ch 47)','Removed; transformation (Ch 69)']],
+      ['Hydrangea charm',["Riven's backstory; safe-passage signal",'','',"On Riven's body; 'Maeren'"]],
+      ['Prophecy book',['Found, source unexplained (Ch 8)','',"Nyara's ledger; Cordova",'x:Say Nyara hid it']],
+      ["Rían's journal",['n:Entries begin before the kidnap','','',"x:Orlíen's reveal through entries, less speech"]],
+    ],
+  },
+};
+const RMAP_KINDS = {n:{cls:'new',label:'New beat from the revision plan'},x:{cls:'sharpen',label:'Existing beat to sharpen'},'':{cls:'',label:'On the page now'}};
+function parseBeat(t){ const k = (t && t.charAt(1)===':') ? t.charAt(0) : ''; return {kind:k, text:k?t.slice(2):t}; }
+function entryForRow(name){
+  const n = name.toLowerCase();
+  const hit = App.index.find(s=>inUniverse(s) && (s.title||'').toLowerCase()===n);
+  return hit ? hit.id : null;
+}
+
+function revisionMapView(){
+  const map = REVISION_MAPS[App.universe];
+  if(!map) return `<div class="page-title">Revision Map</div><div class="empty-note">No revision map for this universe yet.</div>`;
+  const newC=[0,0,0,0], sharpC=[0,0,0,0];
+  let grid = '<div></div>' + map.stages.map(s=>`<div class="rmap-stage">${escapeHtml(s[0])}<span>${escapeHtml(s[1])}</span></div>`).join('');
+  map.rows.forEach((row,ri)=>{
+    if(row[0]==='g'){ grid += `<div class="rmap-group">${escapeHtml(row[1])}</div>`; return; }
+    const eid = entryForRow(row[0]);
+    grid += eid ? `<div class="rmap-row linked" data-nav="detail" data-param="${eid}" title="Open the ${escapeHtml(row[0])} entry">${escapeHtml(row[0])}</div>`
+                : `<div class="rmap-row">${escapeHtml(row[0])}</div>`;
+    row[1].forEach((t,si)=>{
+      if(!t){ grid += '<div class="rmap-cell quiet"></div>'; return; }
+      const b = parseBeat(t);
+      if(b.kind==='n') newC[si]++; if(b.kind==='x') sharpC[si]++;
+      grid += `<div class="rmap-cell ${RMAP_KINDS[b.kind].cls}" data-rmap="${ri}:${si}">${escapeHtml(b.text)}</div>`;
+    });
+  });
+  const counts = '<div>New / sharpen</div>' + map.stages.map((s,i)=>`<div><b>${newC[i]} / ${sharpC[i]}</b>${escapeHtml(s[0])}</div>`).join('');
+  return `
+    <div class="page-title">${escapeHtml(map.title)}</div>
+    <div class="page-sub">${escapeHtml(map.sub)}</div>
+    <div class="rmap-scroll">
+      <div class="rmap">${grid}</div>
+      <div class="rmap-counts">${counts}</div>
+    </div>
+    <div class="rmap-legend">
+      <span><span class="rmap-sw" style="background:var(--parchment);border:1px solid var(--parchment-3)"></span>New beat from your plan</span>
+      <span><span class="rmap-sw" style="background:rgba(162,80,60,.16);border:1px dashed var(--rust)"></span>Existing beat to sharpen</span>
+      <span><span class="rmap-sw" style="background:var(--forest-900);border:1px solid rgba(201,162,74,.3)"></span>On the page now</span>
+      <span><span class="rmap-sw" style="border:1px dotted rgba(201,162,74,.4)"></span>Quiet here</span>
+    </div>`;
+}
+
+function openBeatModal(ri, si){
+  const map = REVISION_MAPS[App.universe]; if(!map) return;
+  const row = map.rows[ri]; const stage = map.stages[si];
+  const b = parseBeat(row[1][si]);
+  const eid = entryForRow(row[0]);
+  const prompt = `Let's work on ${row[0]} in the ${stage[0]} stage (${stage[1]}): ${b.text}`;
+  const overlay = document.createElement('div');
+  overlay.className='overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:520px;">
+      <div class="rmap-kind">${RMAP_KINDS[b.kind].label}</div>
+      <h2 style="margin-top:4px;">${escapeHtml(row[0])} · ${escapeHtml(stage[0])}</h2>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:-6px 0 12px;">${escapeHtml(stage[1])}</div>
+      <p style="font-size:16px;line-height:1.5;margin:0 0 18px;">${escapeHtml(b.text)}</p>
+      <div class="modal-actions" style="flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost" id="beatClose">Close</button>
+        ${eid?`<button type="button" class="btn" id="beatOpen">Open ${escapeHtml(row[0])} entry</button>`:''}
+        <button type="button" class="btn" id="beatCapture">Save as Loose Idea</button>
+        <button type="button" class="btn btn-solid" id="beatAsk">✦ Ask the Codex</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = ()=>overlay.remove();
+  overlay.addEventListener('click',(e)=>{ if(e.target===overlay) close(); });
+  overlay.querySelector('#beatClose').onclick = close;
+  if(eid) overlay.querySelector('#beatOpen').onclick = ()=>{ close(); nav('detail', eid); };
+  overlay.querySelector('#beatAsk').onclick = ()=>{
+    close(); App.aiOpen = true; renderAiPanel();
+    const inp = document.getElementById('aiInput');
+    if(inp){ inp.value = prompt; inp.focus(); }
+  };
+  overlay.querySelector('#beatCapture').onclick = async ()=>{
+    try{
+      const entry = {id:uid(),type:'looseIdea',title:(row[0]+' · '+stage[0]+': '+b.text).slice(0,60),
+        fields:{idea:prompt+'\n\n('+RMAP_KINDS[b.kind].label+')'},body:'',tags:['revision','capture'],
+        universe:App.universe, series:App.seriesFilter==='All'?'Series 1':App.seriesFilter,favorite:false,links:[]};
+      await saveEntry(entry, true);
+      close(); showToast('Saved to Loose Ideas.');
+    }catch(err){ showToast('Save failed: '+(err && err.message ? err.message : 'unknown error')); }
+  };
+}
+
 function sidebarHtml(){
   const uni = currentUniverse();
   let html = `<div class="brand"><div class="brand-title">${uni.brandTitle}</div><div class="brand-sub">${uni.brandSub}</div></div>`;
@@ -571,6 +716,7 @@ function sidebarHtml(){
     </select></div>`;
   html += '<div class="nav-group"><div class="nav-label">Overview</div>';
   const ov = [['dashboard','Dashboard'],['search','Search'],['graph','Relationship Graph'],['timeline','Timeline'],['splitTimeline','Split Timeline'],['discoveries','Discovery Log'],['bible',"The Writer's Bible"],['tags','Tags']];
+  if(REVISION_MAPS[App.universe]) ov.splice(5,0,['revisionMap','Revision Map']);
   ov.forEach(([v,l])=>{ html+=`<div class="nav-item ${App.view===v?'active':''}" data-nav="${v}">${l}</div>`; });
   html+='</div>';
   html += '<div class="nav-group"><div class="nav-label">Entry Types</div>';
@@ -1220,6 +1366,8 @@ async function render(){
   else if(App.view==='timeline'){ main.innerHTML = timelineView(); await renderTimelineTrack('all');
     document.getElementById('tlFilter').onchange = (e)=>renderTimelineTrack(e.target.value); }
   else if(App.view==='splitTimeline'){ main.innerHTML = splitTimelineView(); await renderSplitTimeline(); }
+  else if(App.view==='revisionMap'){ main.innerHTML = revisionMapView();
+    main.querySelectorAll('[data-rmap]').forEach(el=>{ el.onclick = ()=>{ const [r,c]=el.getAttribute('data-rmap').split(':').map(Number); openBeatModal(r,c); }; }); }
   else if(App.view==='graph'){ main.innerHTML = graphView(); requestAnimationFrame(renderGraph); }
   else if(App.view==='list') main.innerHTML = listView(App.viewParam);
   else if(App.view==='detail') main.innerHTML = await detailView(App.viewParam);
@@ -1338,4 +1486,3 @@ function openTypePicker(){
 </script>
 </body>
 </html>
- 
